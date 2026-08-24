@@ -72,6 +72,34 @@ section{margin-top:38px}
 .tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .panel{display:none}
 
+
+/* ---- make everything you can type in look like it ---- */
+input[type=text],input[type=number],input[type=date]{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-bottom:2px solid var(--accent);
+  border-radius:4px 4px 2px 2px;
+  transition:background .12s,border-color .12s;
+}
+input[type=text]:hover,input[type=number]:hover,input[type=date]:hover{
+  background:var(--accent-bg);
+}
+input::placeholder{color:var(--t3);opacity:.75;font-style:italic}
+td input{border-bottom-width:2px}
+/* the row of things you do on a candidate card */
+.act{background:var(--card2);margin:11px -17px -15px;padding:11px 17px 13px;
+  border-top:1px solid var(--line2);border-radius:0 0 4px 4px}
+.act::before{content:"YOUR NOTES";font-family:"IBM Plex Mono",monospace;font-size:.58rem;
+  letter-spacing:.14em;color:var(--t3);width:100%;margin-bottom:-2px}
+/* the AI tab stands out */
+.tab[data-p="ask"]{color:var(--accent)}
+.tab[data-p="ask"]::before{content:"\2726 ";}
+/* a one-line map of the page */
+.howto{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;font-size:.8rem;color:var(--t2)}
+.howto span{background:var(--card);border:1px solid var(--line);border-radius:20px;
+  padding:4px 12px}
+.howto b{color:var(--accent)}
+
 /* pick cards */
 .pick{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:15px 17px;
   box-shadow:var(--shadow);margin-bottom:12px}
@@ -159,6 +187,11 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     Team <b id="teamname" style="color:var(--accent)"></b> &middot; shared with your partner
     <span id="saved" style="color:var(--t3);opacity:.6;margin-left:6px">Saved</span>
   </p>
+  <div class="howto">
+    <span><b>Gold underline</b> = you can type there</span>
+    <span><b>Tick boxes</b> = click them</span>
+    <span><b>&#10022; Ask for help</b> = talk to the AI</span>
+  </div>
   <p style="margin:16px 0 0;font-size:.85rem;color:var(--t3)">
     Everything you type saves in this browser automatically
     <span id="saved" style="color:var(--good);opacity:.45;margin-left:6px">Saved</span>
@@ -202,7 +235,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: all three could walk &mdash; none of the offers is binding yet, and one bidder already has. The share price has jumped on the news, so you are buying the second half of the move. Two bidders are level at $4.00, so the next step up may be small.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -214,7 +247,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: research shows the gain lands mostly on announcement day and then <em>partly reverses</em> after the change takes effect. Buy on the 4th, sell into the 18th. Holding past that gives some back. The effect is also smaller than it used to be.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Which company was added? Why we chose it">
+      <input type="text" class="grow" placeholder="Type which company was added and why...">
     </div>
   </div>
 
@@ -226,7 +259,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: the first bid delivered most of the gain and the counter-bid added only 20c. Most of the value is already in the price. Both offers are non-binding, and TPG's depends on the board recommending it unanimously &mdash; which has not happened.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -238,7 +271,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: a bigger, slower deal. Regulatory approval on a company this size can run past 22 October, so the gain may land after your game has finished.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -250,7 +283,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: genuinely two-sided. A firm offer sends it up; walking away sends it down hard. This is the most binary item on the list &mdash; treat it as a small position, not a big one.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -262,7 +295,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: studies slip. This one has already been delayed once for environmental and water work. A weak return number sends the shares down, not up.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -274,7 +307,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: a decision to build without the funding attached usually disappoints. Check whether the money is in place, not just the decision.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -286,7 +319,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
     <p class="risk">Risk: the easy money may already be made &mdash; the 46% happened before you got here. Small companies like this fall as fast as they rise.</p>
     <div class="act">
       <label><input type="checkbox"> We bought this</label>
-      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+      <input type="text" class="grow" placeholder="Type why we did or did not buy this...">
     </div>
   </div>
 
@@ -405,12 +438,12 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 
 <section class="panel" id="p-ask" hidden>
   <h2>Ask for help</h2>
-  <p class="lead">Stuck on a word or an idea? Ask here. It explains things &mdash; it will not tell you
+  <p class="lead"><b>This is where you talk to the AI.</b> Stuck on a word or an idea? Ask here. It explains things &mdash; it will not tell you
   what to buy, because working that out is the point.</p>
   
   <form id="askform" style="display:flex;flex-wrap:wrap;gap:9px;align-items:center">
     <input type="text" id="askinput" class="grow" maxlength="600"
-      placeholder="e.g. What is a scheme of arrangement?">
+      placeholder="Type your question here, then press Ask...">
     <button class="b" type="submit">Ask</button>
   </form>
   <div id="askout" hidden style="margin-top:14px;padding:14px 16px;background:var(--card);
@@ -422,7 +455,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 </section>
 
 <footer>
-  <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">build <b>20260824-1436</b></p>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">build <b>20260824-1440</b></p>
 <p><b>Last refreshed: 24 August 2026</b> &mdash; FleetPartners now has three live bids with real prices ($4.00, $4.00, $3.80) and a fourth bidder has withdrawn; EQT's board has still not let either bidder inspect the books; Austal's deadline corrected to about 7 September.</p>
 <p><b>How to keep your work.</b> This page saves automatically in whichever browser you open it in. To give your work to your partner (or move to another computer), press <b>Save to a file</b> and send them <code>our-game-work.json</code>; they press <b>Load a file</b> and choose it. Keep the copy of this page somewhere you can find it &mdash; if you delete it, your saved work goes with it.</p>
 <p>Built for the ASX Schools Sharemarket Game, Game 2 2026 (13 August &ndash; 22 October). Odds are drawn from published base rates: Australian scheme-of-arrangement completion 79% (2025 public M&amp;A data), index-addition studies, and the winning-portfolio analysis in the project's research report. Candidate dates come from company announcements and ASX calendars and should be checked against each company's own ASX announcements page &mdash; several are estimates.</p>
