@@ -191,6 +191,18 @@ body[data-local-locked] .wrap{display:none}
   <h1>Sharemarket Game Desk</h1>
   <p class="sub">A workspace for one team. Ranked candidates with real dates and real odds, a portfolio checker, a risk simulator, and a decision diary that earns the marks.</p>
   
+  <div id="teambox" style="margin:16px 0 0;padding:13px 15px;background:var(--card);
+       border:1px solid var(--accent);border-radius:5px">
+    <form id="teamform" style="display:flex;flex-wrap:wrap;gap:9px;align-items:center">
+      <span style="font-size:.9rem"><b>Team name</b> &mdash; both of you type the same one to share your work:</span>
+      <input type="text" id="teaminput" placeholder="e.g. redgums" maxlength="40" style="width:150px">
+      <button class="b" type="submit">Connect</button>
+    </form>
+  </div>
+  <p id="teamon" hidden style="margin:16px 0 0;font-size:.85rem;color:var(--t3)">
+    Team <b id="teamname" style="color:var(--accent)"></b> &middot; shared with your partner
+    <span id="saved" style="color:var(--t3);opacity:.6;margin-left:6px">Saved</span>
+  </p>
   <p style="margin:16px 0 0;font-size:.85rem;color:var(--t3)">
     Everything you type saves in this browser automatically
     <span id="saved" style="color:var(--good);opacity:.45;margin-left:6px">Saved</span>
@@ -214,6 +226,7 @@ body[data-local-locked] .wrap{display:none}
   <button class="tab" role="tab" aria-selected="false" data-p="sim">Risk simulator</button>
   <button class="tab" role="tab" aria-selected="false" data-p="diary">Decision diary</button>
   <button class="tab" role="tab" aria-selected="false" data-p="cal">Calendar</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="ask">Ask for help</button>
 </div>
 
 
@@ -433,6 +446,25 @@ body[data-local-locked] .wrap{display:none}
   </div>
 </section>
 
+
+<section class="panel" id="p-ask" hidden>
+  <h2>Ask for help</h2>
+  <p class="lead">Stuck on a word or an idea? Ask here. It explains things &mdash; it will not tell you
+  what to buy, because working that out is the point.</p>
+  
+  <form id="askform" style="display:flex;flex-wrap:wrap;gap:9px;align-items:center">
+    <input type="text" id="askinput" class="grow" maxlength="600"
+      placeholder="e.g. What is a scheme of arrangement?">
+    <button class="b" type="submit">Ask</button>
+  </form>
+  <div id="askout" hidden style="margin-top:14px;padding:14px 16px;background:var(--card);
+    border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;
+    font-size:.95rem;white-space:pre-wrap"></div>
+  <p class="note">Good questions: what does this word mean &middot; why would that make a share price
+  move &middot; what should we watch for on 4 September &middot; explain the risk on candidate 5.</p>
+  
+</section>
+
 <footer>
   <p><b>Last refreshed: 24 August 2026</b> &mdash; FleetPartners now has three live bids with real prices ($4.00, $4.00, $3.80) and a fourth bidder has withdrawn; EQT's board has still not let either bidder inspect the books; Austal's deadline corrected to about 7 September.</p>
 <p><b>How to keep your work.</b> This page saves automatically in whichever browser you open it in. To give your work to your partner (or move to another computer), press <b>Save to a file</b> and send them <code>our-game-work.json</code>; they press <b>Load a file</b> and choose it. Keep the copy of this page somewhere you can find it &mdash; if you delete it, your saved work goes with it.</p>
@@ -448,7 +480,8 @@ body[data-local-tab="picks"] #p-picks,
 body[data-local-tab="port"]  #p-port,
 body[data-local-tab="sim"]   #p-sim,
 body[data-local-tab="diary"] #p-diary,
-body[data-local-tab="cal"]   #p-cal { display:block }
+body[data-local-tab="cal"]   #p-cal,
+body[data-local-tab="ask"]   #p-ask { display:block }
 @media print{
   .tabs,.strip,button{display:none!important}
   .panel{display:block!important;page-break-inside:auto;margin-top:26px}
@@ -743,10 +776,13 @@ body[data-local-tab="cal"]   #p-cal { display:block }
       }catch(e){}
     },350);
   }
-  document.addEventListener("input", save);
-  document.addEventListener("change", save);
+  window.__snapshot = snapshot;
+  window.__restore  = function(d){ restore(d); nudge(); };
+  function notify(){ if(window.__onLocalChange) window.__onLocalChange(); }
+  document.addEventListener("input",  function(){ save(); notify(); });
+  document.addEventListener("change", function(){ save(); notify(); });
   document.addEventListener("click", function(e){
-    if(e.target.id==="addrow"||e.target.id==="adddiary") save();
+    if(e.target.id==="addrow"||e.target.id==="adddiary"){ save(); notify(); }
   });
 
   function nudge(){                       // make the totals recompute
@@ -780,3 +816,106 @@ body[data-local-tab="cal"]   #p-cal { display:block }
 </script>
 </body>
 </html>
+
+<script>
+/* ---- shared team save + ask Claude ---- */
+(function(){
+  "use strict";
+  var API  = "https://asx-game-desk.asx-game-desk-worker.workers.dev";
+  var KEY  = "asx-game-desk-v1";
+  var TEAMK= "asx-game-desk-team";
+  var $  = function(s,r){return (r||document).querySelector(s)};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+  var team = null, rev = 0, pushing = false, dirty = false;
+
+  function status(txt, colour){
+    var s=$("#saved"); if(!s) return;
+    s.textContent = txt; s.style.opacity="1";
+    s.style.color = colour || "var(--good)";
+  }
+
+  /* ---------- talk to the server ---------- */
+  function pull(){
+    if(!team) return Promise.resolve();
+    return fetch(API+"/state?team="+encodeURIComponent(team))
+      .then(function(r){return r.json()})
+      .then(function(res){
+        if(res && res.data && res.rev > rev && !dirty){
+          rev = res.rev;
+          window.__restore(res.data);
+          status("Updated from your partner");
+          setTimeout(function(){status("Saved","var(--t3)")},2000);
+        } else if(res && typeof res.rev === "number" && res.rev > rev){
+          rev = res.rev;
+        }
+      })
+      .catch(function(){ status("Offline - saved on this computer","var(--bad)") });
+  }
+  function push(){
+    if(!team || pushing) return;
+    pushing = true;
+    var payload = JSON.stringify({data: window.__snapshot(), rev: rev});
+    fetch(API+"/state?team="+encodeURIComponent(team), {
+      method:"POST", headers:{"Content-Type":"application/json"}, body: payload
+    }).then(function(r){return r.json()})
+      .then(function(res){
+        if(res && res.rev){ rev = res.rev; dirty = false; status("Saved for both of you"); 
+          setTimeout(function(){status("Saved","var(--t3)")},1500); }
+      })
+      .catch(function(){ status("Offline - saved on this computer","var(--bad)") })
+      .then(function(){ pushing = false });
+  }
+
+  var t=null;
+  window.__onLocalChange = function(){
+    dirty = true;
+    clearTimeout(t); t = setTimeout(function(){ push(); }, 900);
+  };
+
+  /* ---------- team name ---------- */
+  function setTeam(name){
+    team = String(name||"").toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,40);
+    if(!team) return;
+    try{ localStorage.setItem(TEAMK, team); }catch(e){}
+    var lbl=$("#teamname"); if(lbl) lbl.textContent = team;
+    var box=$("#teambox"); if(box) box.hidden = true;
+    var on=$("#teamon"); if(on) on.hidden = false;
+    rev = 0;
+    pull();
+    setInterval(pull, 8000);
+  }
+  var tf = $("#teamform");
+  if(tf) tf.addEventListener("submit", function(e){
+    e.preventDefault(); setTeam($("#teaminput").value);
+  });
+  try{ var saved = localStorage.getItem(TEAMK); if(saved) setTeam(saved); }catch(e){}
+
+  /* ---------- ask Claude ---------- */
+  function pageContext(){
+    var picks = $$(".pick").slice(0,4).map(function(p){
+      var n=$(".nm",p), k=p.getAttribute("data-key"), w=$(".why",p);
+      return (n?n.textContent:"") + " ("+k+"): " + (w?w.textContent:"");
+    }).join("\n");
+    return "Top candidates on their page:\n" + picks;
+  }
+  var af = $("#askform");
+  if(af) af.addEventListener("submit", function(e){
+    e.preventDefault();
+    var q = $("#askinput").value.trim();
+    if(!q) return;
+    var out = $("#askout");
+    out.textContent = "Thinking...";
+    out.hidden = false;
+    fetch(API+"/ask?team="+encodeURIComponent(team||"guest"), {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({question:q, context: pageContext()})
+    }).then(function(r){return r.json()})
+      .then(function(res){
+        out.textContent = res.answer || res.error || "No answer came back.";
+        $("#askinput").value = "";
+      })
+      .catch(function(){ out.textContent = "Could not reach the helper. Check the internet connection."; });
+  });
+})();
+</script>
