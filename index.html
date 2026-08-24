@@ -149,7 +149,7 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 #lock p{color:var(--t2);font-size:.9rem;margin:0 0 18px}
 #lock input{font-family:"IBM Plex Mono",monospace;font-size:1.4rem;letter-spacing:.4em;
   text-align:center;width:150px;padding:10px}
-#lock .err{color:var(--bad);font-size:.85rem;min-height:20px;margin-top:10px}
+#lock .err{color:var(--bad);font-size:.95rem;font-weight:600;min-height:22px;margin-top:12px}
 body[data-local-locked] .wrap{display:none}
 </style>
 <div id="lock" hidden>
@@ -171,16 +171,24 @@ body[data-local-locked] .wrap{display:none}
   document.body.setAttribute("data-local-locked","1");
   lock.hidden = false;
   var f = document.getElementById("lockform");
+  var busy = false;
   function tryUnlock(e){
     if(e) e.preventDefault();
-    var v = document.getElementById("pin").value.trim();
+    if(busy) return;                       // click + submit both fire; only act once
+    busy = true; setTimeout(function(){ busy = false; }, 120);
+    var el = document.getElementById("pin");
+    if(!el) return;
+    var v = (el.value || "").replace(/[^0-9]/g, "");   // ignore spaces, autofill junk
     if(v === PIN){
       try{ localStorage.setItem(K, PIN); }catch(e){}
       document.body.removeAttribute("data-local-locked");
       lock.remove();
     } else {
-      document.getElementById("lockerr").textContent = "Wrong PIN - try again.";
-      document.getElementById("pin").value = "";
+      var err = document.getElementById("lockerr");
+      err.textContent = v.length
+        ? "That PIN (" + v + ") is not right. The PIN is 4 digits."
+        : "Nothing was typed in the box - click it first, then type.";
+      el.value = ""; el.focus();
     }
   }
   f.addEventListener("submit", tryUnlock);
