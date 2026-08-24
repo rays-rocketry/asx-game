@@ -827,7 +827,7 @@ body[data-local-tab="ask"]   #p-ask { display:block }
   var $  = function(s,r){return (r||document).querySelector(s)};
   var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 
-  var team = null, rev = 0, pushing = false, dirty = false;
+  var team = null, rev = 0, pushing = false, dirty = false, applying = false;
 
   function status(txt, colour){
     var s=$("#saved"); if(!s) return;
@@ -841,9 +841,11 @@ body[data-local-tab="ask"]   #p-ask { display:block }
     return fetch(API+"/state?team="+encodeURIComponent(team))
       .then(function(r){return r.json()})
       .then(function(res){
-        if(res && res.data && res.rev > rev && !dirty){
+        if(res && res.data && res.rev > rev && !dirty && !pushing){
           rev = res.rev;
+          applying = true;
           window.__restore(res.data);
+          setTimeout(function(){ applying = false; }, 60);
           status("Updated from your partner");
           setTimeout(function(){status("Saved","var(--t3)")},2000);
         } else if(res && typeof res.rev === "number" && res.rev > rev){
@@ -869,6 +871,7 @@ body[data-local-tab="ask"]   #p-ask { display:block }
 
   var t=null;
   window.__onLocalChange = function(){
+    if(applying) return;              // this change came from the server, not the user
     dirty = true;
     clearTimeout(t); t = setTimeout(function(){ push(); }, 900);
   };
