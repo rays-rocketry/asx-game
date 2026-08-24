@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharemarket Game Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+
+<style>
+:root{
+  --ground:#EEF1F5; --card:#FFF; --card2:#F6F8FB; --line:#D2D9E2; --line2:#E4E9EF;
+  --text:#131A23; --t2:#4A5765; --t3:#78838F;
+  --accent:#B4740A; --accent-bg:#FBF1DE;
+  --good:#0B7A6E; --good-bg:#E0F2EF; --bad:#A8321F; --bad-bg:#FBE9E5;
+  --a:#1D5FCB; --a-bg:#E6EEFC; --b:#6D4CC4; --b-bg:#F0EBFB; --c:#C02366; --c-bg:#FBE7F0;
+  --shadow:0 1px 2px rgba(19,26,35,.05),0 6px 20px -12px rgba(19,26,35,.2);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D131B; --card:#151D27; --card2:#1B242F; --line:#2B3644; --line2:#232D3A;
+  --text:#E6EBF2; --t2:#A9B4C2; --t3:#7C8896;
+  --accent:#F0B429; --accent-bg:#3A2C0E;
+  --good:#4ECDC0; --good-bg:#0F332F; --bad:#F0907B; --bad-bg:#3A1B15;
+  --a:#7BAAF7; --a-bg:#152744; --b:#B49BF5; --b-bg:#2A2242; --c:#F98BBA; --c-bg:#3B172A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D131B; --card:#151D27; --card2:#1B242F; --line:#2B3644; --line2:#232D3A;
+  --text:#E6EBF2; --t2:#A9B4C2; --t3:#7C8896;
+  --accent:#F0B429; --accent-bg:#3A2C0E;
+  --good:#4ECDC0; --good-bg:#0F332F; --bad:#F0907B; --bad-bg:#3A1B15;
+  --a:#7BAAF7; --a-bg:#152744; --b:#B49BF5; --b-bg:#2A2242; --c:#F98BBA; --c-bg:#3B172A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--text);
+  font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 18px 70px}
+h1,h2,h3{font-family:Archivo,"Helvetica Neue",sans-serif;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,5vw,2.7rem);font-weight:700;margin:0 0 8px;line-height:1.05}
+h2{font-size:1.35rem;font-weight:700;margin:0 0 4px}
+h3{font-size:1rem;font-weight:600;margin:0 0 6px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+header{padding:44px 0 22px;border-bottom:2px solid var(--text)}
+.sub{color:var(--t2);margin:0;max-width:62ch;font-size:1.03rem}
+section{margin-top:38px}
+.lead{color:var(--t2);margin:0 0 16px;max-width:66ch;font-size:.97rem}
+
+/* status strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:5px;overflow:hidden;margin:18px 0 0}
+.st{background:var(--card);padding:13px 15px}
+.st .k{font-family:"IBM Plex Mono",monospace;font-size:.6rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--t3);display:block;margin-bottom:3px}
+.st .v{font-family:Archivo,sans-serif;font-weight:700;font-size:1.45rem;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+
+/* tabs (local) */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:26px 0 18px;border-bottom:1px solid var(--line)}
+.tab{font-family:Archivo,sans-serif;font-size:.86rem;font-weight:600;padding:8px 14px;
+  border:0;background:none;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{display:none}
+
+/* pick cards */
+.pick{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:15px 17px;
+  box-shadow:var(--shadow);margin-bottom:12px}
+.pick.top{border-color:var(--accent)}
+.ph{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px 11px;margin-bottom:7px}
+.rank{font-family:Archivo,sans-serif;font-weight:700;font-size:1.05rem;color:var(--accent);
+  min-width:20px}
+.nm{font-family:Archivo,sans-serif;font-weight:600;font-size:1.05rem}
+.tk{font-family:"IBM Plex Mono",monospace;font-size:.74rem;font-weight:600;color:var(--t3)}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:.62rem;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 8px;border-radius:3px;white-space:nowrap}
+.c-deal{background:var(--b-bg);color:var(--b)} .c-flow{background:var(--a-bg);color:var(--a)}
+.c-proj{background:var(--good-bg);color:var(--good)} .c-earn{background:var(--accent-bg);color:var(--accent)}
+.odds{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600}
+.why{margin:0 0 9px;font-size:.94rem;color:var(--t2)}
+.when{margin:0 0 10px;font-size:.86rem;font-family:"IBM Plex Mono",monospace;color:var(--text)}
+.when b{color:var(--accent)}
+.risk{margin:0;padding:9px 12px;background:var(--card2);border-left:2px solid var(--bad);
+  border-radius:0 3px 3px 0;font-size:.88rem;color:var(--t2)}
+.act{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:11px;
+  padding-top:10px;border-top:1px solid var(--line2)}
+.act label{font-size:.85rem;display:flex;align-items:center;gap:6px;cursor:pointer}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+input[type=text],input[type=number],input[type=date]{font-family:inherit;font-size:.88rem;
+  padding:6px 9px;border:1px solid var(--line);border-radius:4px;background:var(--card2);
+  color:var(--text);min-width:0}
+input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grow{flex:1;min-width:150px}
+button.b{font-family:Archivo,sans-serif;font-size:.84rem;font-weight:600;padding:8px 15px;
+  border:1px solid var(--accent);background:var(--accent);color:var(--ground);border-radius:4px;
+  cursor:pointer}
+button.b.ghost{background:none;color:var(--accent)}
+button.b:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{font-family:Archivo,sans-serif;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--t3);text-align:left;padding:7px 8px;border-bottom:1.5px solid var(--text);font-weight:600}
+td{padding:5px 8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+td input{width:100%}
+.scroll{overflow-x:auto;border-radius:5px}
+.note{font-size:.83rem;color:var(--t3);margin:10px 0 0}
+.callout{background:var(--accent-bg);border:1px solid var(--accent);border-radius:5px;
+  padding:15px 17px;margin:16px 0;font-size:.93rem}
+.callout.warn{background:var(--bad-bg);border-color:var(--bad)}
+.bars{display:flex;flex-direction:column;gap:7px;margin:14px 0}
+.bar{display:grid;grid-template-columns:118px 1fr 62px;gap:9px;align-items:center;font-size:.82rem}
+.bar .track{height:15px;background:var(--card2);border-radius:2px;overflow:hidden}
+.bar .fill{height:100%;background:var(--a)}
+.bar .n{font-family:"IBM Plex Mono",monospace;font-size:.78rem;text-align:right}
+.hist{display:flex;align-items:flex-end;gap:1px;height:110px;margin:12px 0 4px}
+.hist div{flex:1;background:var(--a);min-height:1px;border-radius:1px 1px 0 0}
+.hist div.win{background:var(--good)} .hist div.loss{background:var(--bad)}
+.axis{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;
+  font-size:.66rem;color:var(--t3)}
+.cal{display:flex;flex-direction:column;gap:0}
+.ev{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:11px 0;
+  border-top:1px solid var(--line2);align-items:start}
+.ev .d{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--accent);font-weight:600}
+.ev .t{font-size:.92rem}
+.ev .t small{display:block;color:var(--t2);font-size:.84rem;margin-top:2px}
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:.8rem;color:var(--t3)}
+@media(max-width:700px){
+  .strip{grid-template-columns:repeat(2,1fr)}
+  .bar{grid-template-columns:88px 1fr 54px}
+  .ev{grid-template-columns:1fr;gap:3px}
+}
+</style>
+
+<style>
+#lock{position:fixed;inset:0;z-index:9999;background:var(--ground);display:flex;
+  align-items:center;justify-content:center;padding:24px}
+#lock .box{max-width:340px;width:100%;text-align:center}
+#lock h2{font-size:1.3rem;margin:0 0 6px}
+#lock p{color:var(--t2);font-size:.9rem;margin:0 0 18px}
+#lock input{font-family:"IBM Plex Mono",monospace;font-size:1.4rem;letter-spacing:.4em;
+  text-align:center;width:150px;padding:10px}
+#lock .err{color:var(--bad);font-size:.85rem;min-height:20px;margin-top:10px}
+body[data-local-locked] .wrap{display:none}
+</style>
+<div id="lock" hidden>
+  <div class="box">
+    <h2>Sharemarket Game Desk</h2>
+    <p>Enter the team PIN to open.</p>
+    <form id="lockform"><input type="text" inputmode="numeric" id="pin" maxlength="6"
+      autocomplete="off" aria-label="Team PIN"><br>
+      <button class="b" type="submit" style="margin-top:14px">Unlock</button></form>
+    <div class="err" id="lockerr"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PIN = "2610";                    // <-- change this to set a new team PIN
+  var K = "asx-game-desk-unlocked";
+  var lock = document.getElementById("lock");
+  try{ if(sessionStorage.getItem(K)===PIN || localStorage.getItem(K)===PIN) return; }catch(e){}
+  document.body.setAttribute("data-local-locked","1");
+  lock.hidden = false;
+  var f = document.getElementById("lockform");
+  f.addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = document.getElementById("pin").value.trim();
+    if(v === PIN){
+      try{ localStorage.setItem(K, PIN); }catch(e){}
+      document.body.removeAttribute("data-local-locked");
+      lock.remove();
+    } else {
+      document.getElementById("lockerr").textContent = "Wrong PIN - try again.";
+      document.getElementById("pin").value = "";
+    }
+  });
+  setTimeout(function(){ var i=document.getElementById("pin"); if(i) i.focus(); }, 60);
+})();
+</script>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">ASX schools sharemarket game &middot; game 2, 2026</p>
+  <h1>Sharemarket Game Desk</h1>
+  <p class="sub">A workspace for one team. Ranked candidates with real dates and real odds, a portfolio checker, a risk simulator, and a decision diary that earns the marks.</p>
+  
+  <p style="margin:16px 0 0;font-size:.85rem;color:var(--t3)">
+    Everything you type saves in this browser automatically
+    <span id="saved" style="color:var(--good);opacity:.45;margin-left:6px">Saved</span>
+    &middot; <button class="b ghost" id="export" style="padding:4px 10px;font-size:.78rem">Save to a file</button>
+    <label class="b ghost" style="padding:4px 10px;font-size:.78rem;display:inline-block;cursor:pointer">
+      Load a file<input type="file" id="importfile" accept=".json" style="display:none"></label>
+  </p>
+  <div class="strip" id="strip">
+    <div class="st"><span class="k">Portfolio</span><span class="v mono" id="s-val">$50,000</span></div>
+    <div class="st"><span class="k">Return</span><span class="v mono" id="s-ret">0.0%</span></div>
+    <div class="st"><span class="k">Winning bar</span><span class="v mono">+44.6%</span></div>
+    <div class="st"><span class="k">Days left</span><span class="v mono" id="s-days">&mdash;</span></div>
+  </div>
+  
+</header>
+
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-p="picks">Candidates</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="port">Portfolio</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="sim">Risk simulator</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="diary">Decision diary</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="cal">Calendar</button>
+</div>
+
+
+<section class="panel" id="p-picks">
+  <h2>Candidates, ranked</h2>
+  <p class="lead">Ranked by how likely the catalyst is to land <em>inside</em> the game window, not by how big the move could be. A 79% event beats a 15% event even when the 15% one pays more. Odds come from published base rates &mdash; sources at the bottom.</p>
+
+  <div class="callout">
+    <b>Rule the game imposes on you:</b> it ends <b>22 October</b>. Anything scheduled after that date is worthless here, however good it looks. That single filter removed several of the strongest ideas &mdash; November trial results, the 31 October quarterly reports.
+  </div>
+
+  <div data-key="FPR" class="pick top">
+    <div class="ph"><span class="rank">1</span><span class="nm">FleetPartners</span><span class="tk">FPR</span>
+      <span class="chip c-deal">Takeover</span><span class="odds" style="color:var(--good)">~75% odds</span></div>
+    <p class="why">Vehicle leasing company with <b>three separate buyers</b> bidding &mdash; Element Fleet, SG Fleet and ORIX. More bidders than any other company on the ASX right now.</p>
+    <p class="when">Trigger: <b>any morning</b> &mdash; a board recommendation or a raised offer</p>
+    <p class="risk">Risk: all three could walk. Competitive processes collapse more often than agreed deals. The share price has already risen on the news, so you are buying the second half of the move.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div data-key="4-SEP" class="pick top">
+    <div class="ph"><span class="rank">2</span><span class="nm">The ASX 200 reshuffle</span><span class="tk">4 SEP</span>
+      <span class="chip c-flow">Forced buying</span><span class="odds" style="color:var(--good)">~70% odds</span></div>
+    <p class="why">Four times a year the list of Australia's biggest 200 companies is updated, and index funds are <b>obliged</b> to buy whatever is added &mdash; regardless of price. September is the larger half-yearly review: roughly <b>$2.5 billion</b> of forced trading.</p>
+    <p class="when">Announced <b>Friday 4 September</b> &middot; takes effect <b>Friday 18 September</b></p>
+    <p class="risk">Risk: research shows the gain lands mostly on announcement day and then <em>partly reverses</em> after the change takes effect. Buy on the 4th, sell into the 18th. Holding past that gives some back. The effect is also smaller than it used to be.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Which company was added? Why we chose it">
+    </div>
+  </div>
+
+  <div data-key="EQT" class="pick">
+    <div class="ph"><span class="rank">3</span><span class="nm">EQT Holdings</span><span class="tk">EQT</span>
+      <span class="chip c-deal">Takeover</span><span class="odds" style="color:var(--good)">~70% odds</span></div>
+    <p class="why">A live bidding war. TPG offered <b>$24.55 a share</b>, then BGH Capital countered at <b>$24.75</b> three days later. The shares had their best single day in 41 years on the first offer.</p>
+    <p class="when">Trigger: <b>days to weeks</b> &mdash; the board picking a bidder, or a third one appearing</p>
+    <p class="risk">Risk: the first bid delivered most of the gain and the counter-bid added only 20c. Most of the value is already in the price. Both offers are still non-binding.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div data-key="RWC" class="pick">
+    <div class="ph"><span class="rank">4</span><span class="nm">Reliance Worldwide</span><span class="tk">RWC</span>
+      <span class="chip c-deal">Takeover</span><span class="odds">~65% odds</span></div>
+    <p class="why">Plumbing fittings maker. Brookfield has already <b>raised its offer once</b>, to $4.1 billion &mdash; which usually means the buyer is serious and the board pushed back successfully.</p>
+    <p class="when">Trigger: <b>weeks</b> &mdash; the board formally recommending it to shareholders</p>
+    <p class="risk">Risk: a bigger, slower deal. Regulatory approval on a company this size can run past 22 October, so the gain may land after your game has finished.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div data-key="ASB" class="pick">
+    <div class="ph"><span class="rank">5</span><span class="nm">Austal</span><span class="tk">ASB</span>
+      <span class="chip c-deal">Takeover</span><span class="odds">~50% odds</span></div>
+    <p class="why">Korean group Hanwha offered up to <b>$1.2 billion</b> for Austal's American shipyards on 11 August; the shares jumped 17% that day. Hanwha was given four weeks to inspect the books.</p>
+    <p class="when">Deadline: <b>around 8 September</b> &mdash; a real date in the diary</p>
+    <p class="risk">Risk: genuinely two-sided. A firm offer sends it up; walking away sends it down hard. This is the most binary item on the list &mdash; treat it as a small position, not a big one.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div data-key="CVV" class="pick">
+    <div class="ph"><span class="rank">6</span><span class="nm">Caravel Minerals</span><span class="tk">CVV</span>
+      <span class="chip c-proj">Mining study</span><span class="odds">~45% odds</span></div>
+    <p class="why">A copper company publishing its <b>final engineering and costing study in September</b> &mdash; the document that says whether the mine is worth building and at what return. It has already lifted its measured ore reserve to 597 million tonnes.</p>
+    <p class="when">Due: <b>September</b> &middot; plus a possible copper supply deal with an Adani subsidiary</p>
+    <p class="risk">Risk: studies slip. This one has already been delayed once for environmental and water work. A weak return number sends the shares down, not up.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div data-key="AEE" class="pick">
+    <div class="ph"><span class="rank">7</span><span class="nm">Aura Energy</span><span class="tk">AEE</span>
+      <span class="chip c-proj">Build decision</span><span class="odds">~40% odds</span></div>
+    <p class="why">The board decides whether to actually build its uranium mine. Published economics show a strong projected return.</p>
+    <p class="when">Targeted: <b>by 30 September</b></p>
+    <p class="risk">Risk: a decision to build without the funding attached usually disappoints. Check whether the money is in place, not just the decision.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div data-key="VTX" class="pick">
+    <div class="ph"><span class="rank">8</span><span class="nm">Vertex Minerals</span><span class="tk">VTX</span>
+      <span class="chip c-proj">New equipment</span><span class="odds">~35% odds</span></div>
+    <p class="why">A small gold miner switching to bigger, more efficient mining machinery &mdash; less waste rock, higher grade ore to the mill. It rose <b>46% in one week</b> in August on the very first test blast.</p>
+    <p class="when">New rig arrives <b>mid-September</b> &middot; full switchover through <b>October</b></p>
+    <p class="risk">Risk: the easy money may already be made &mdash; the 46% happened before you got here. Small companies like this fall as fast as they rise.</p>
+    <div class="act">
+      <label><input type="checkbox"> We bought this</label>
+      <input type="text" class="grow" placeholder="Our reason for buying / not buying">
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <b>Why Megaport is not on this list.</b> Megaport was held by 7 of the 14 winning portfolios I analysed &mdash; by far the most common winning stock. It is deliberately excluded, because that is <em>last</em> game's winner. Those winners bought it before it ran; copying them now means buying after. Picking a stock because it already went up is the single most common mistake in this game.
+  </div>
+</section>
+
+<section class="panel" id="p-port" hidden>
+  <h2>Portfolio</h2>
+  <p class="lead">Type what you hold. Paste today's prices from your broker screen into the price column &mdash; the totals and the health check update as you type.</p>
+  <div class="scroll"><table>
+    <thead><tr><th style="width:15%">Code</th><th style="width:24%">Company</th>
+      <th style="width:13%">Shares</th><th style="width:14%">Buy price</th>
+      <th style="width:14%">Price now</th><th style="width:20%">Sector</th></tr></thead>
+    <tbody id="rows">
+      <tr><td><input type="text" class="pc" placeholder="FPR"></td><td><input type="text"></td>
+        <td><input type="number" class="pq" placeholder="0"></td>
+        <td><input type="number" class="pb" step="0.01" placeholder="0.00"></td>
+        <td><input type="number" class="pp" step="0.01" placeholder="0.00"></td>
+        <td><input type="text" class="ps" placeholder="Financials"></td></tr>
+      <tr><td><input type="text" class="pc"></td><td><input type="text"></td>
+        <td><input type="number" class="pq"></td><td><input type="number" class="pb" step="0.01"></td>
+        <td><input type="number" class="pp" step="0.01"></td><td><input type="text" class="ps"></td></tr>
+      <tr><td><input type="text" class="pc"></td><td><input type="text"></td>
+        <td><input type="number" class="pq"></td><td><input type="number" class="pb" step="0.01"></td>
+        <td><input type="number" class="pp" step="0.01"></td><td><input type="text" class="ps"></td></tr>
+      <tr><td><input type="text" class="pc"></td><td><input type="text"></td>
+        <td><input type="number" class="pq"></td><td><input type="number" class="pb" step="0.01"></td>
+        <td><input type="number" class="pp" step="0.01"></td><td><input type="text" class="ps"></td></tr>
+      <tr><td><input type="text" class="pc"></td><td><input type="text"></td>
+        <td><input type="number" class="pq"></td><td><input type="number" class="pb" step="0.01"></td>
+        <td><input type="number" class="pp" step="0.01"></td><td><input type="text" class="ps"></td></tr>
+      <tr><td><input type="text" class="pc"></td><td><input type="text"></td>
+        <td><input type="number" class="pq"></td><td><input type="number" class="pb" step="0.01"></td>
+        <td><input type="number" class="pp" step="0.01"></td><td><input type="text" class="ps"></td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:12px"><button class="b ghost" id="addrow">+ Add a row</button>
+    <label style="margin-left:14px;font-size:.88rem">Cash left
+      <input type="number" id="cash" step="0.01" placeholder="0.00" style="width:120px"></label></p>
+
+  
+  <h3 style="margin-top:26px">Health check</h3>
+  <p class="lead" style="margin-bottom:10px">Measured against the 14 real winning portfolios analysed in the research report.</p>
+  <div id="health"></div>
+  
+</section>
+
+<section class="panel" id="p-sim" hidden>
+  <h2>Risk simulator</h2>
+  <p class="lead">Runs your portfolio through <b>10,000 imaginary versions</b> of the rest of the game, using the published success rates for each type of catalyst. It does not predict what will happen &mdash; it shows the <em>spread</em> of what could.</p>
+
+  
+  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:6px">
+    <label style="font-size:.85rem">How many stocks<br><input type="number" id="sim-n" value="4" min="1" max="12" style="width:80px"></label>
+    <label style="font-size:.85rem">Catalyst mix<br>
+      <select id="sim-mix" style="font-family:inherit;font-size:.88rem;padding:6px 9px;border:1px solid var(--line);border-radius:4px;background:var(--card2);color:var(--text)">
+        <option value="safe">Mostly takeovers (safest)</option>
+        <option value="mixed" selected>Mixed &mdash; the ranked list</option>
+        <option value="wild">Mostly small miners (wildest)</option>
+      </select></label>
+    <button class="b" id="run">Run 10,000 games</button>
+  </div>
+  <div id="simout"></div>
+  
+</section>
+
+<section class="panel" id="p-diary" hidden>
+  <h2>Decision diary</h2>
+  <div class="callout">
+    <b>This is the part that earns the marks.</b> In the Schools Game, teachers score documented reasoning, not the final number. A team finishing at $52,000 with a clear record of <em>why</em> usually beats a team that lucked into $70,000 with no notes. Write the reason <b>before</b> you know the outcome &mdash; that is the whole point.
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th style="width:12%">Date</th><th style="width:10%">Code</th><th style="width:11%">Buy/Sell</th>
+      <th style="width:37%">Why &mdash; written before we knew</th><th style="width:30%">What actually happened</th></tr></thead>
+    <tbody id="drows">
+      <tr><td><input type="date"></td><td><input type="text"></td><td><input type="text" placeholder="Buy"></td>
+        <td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td>
+        <td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td>
+        <td><input type="text"></td><td><input type="text"></td></tr>
+      <tr><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td>
+        <td><input type="text"></td><td><input type="text"></td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:12px"><button class="b ghost" id="adddiary">+ Add a row</button>
+    <button class="b ghost" id="print" style="margin-left:8px">Print for assignment</button></p>
+</section>
+
+<section class="panel" id="p-cal" hidden>
+  <h2>What happens, and when</h2>
+  <p class="lead">Every dated event between now and the close of the game. Tick them off as they pass &mdash; both of you see the same list.</p>
+  <div class="cal">
+    <div class="ev"><span class="d">Mon 24 Aug</span><span class="t"><label><input type="checkbox"> <b>Fortescue</b> full-year results</label><small>Watch: spending plans and dividends</small></span></div>
+    <div class="ev"><span class="d">Tue 25 Aug</span><span class="t"><label><input type="checkbox"> <b>Coles</b> full-year results</label><small>Sets the tone for Woolworths next day</small></span></div>
+    <div class="ev"><span class="d">Wed 26 Aug</span><span class="t"><label><input type="checkbox"> <b>Woolworths</b> + <b>Flight Centre</b> results</label><small>Flight Centre is 12% short-sold &mdash; the sharpest set-up of the week</small></span></div>
+    <div class="ev"><span class="d">Thu 27 Aug</span><span class="t"><label><input type="checkbox"> <b>Wesfarmers</b> + <b>Qantas</b> results</label><small>Bunnings is most of Wesfarmers' profit</small></span></div>
+    <div class="ev"><span class="d">Mon 31 Aug</span><span class="t"><label><input type="checkbox"> <b>Reporting deadline</b></label><small>Every remaining company must report by today. Bad news tends to arrive late</small></span></div>
+    <div class="ev"><span class="d">Tue 1 Sep</span><span class="t"><label><input type="checkbox"> <b>ASX Limited</b> new chief executive starts</label><small>New bosses often reset cost forecasts early</small></span></div>
+    <div class="ev"><span class="d">Fri 4 Sep</span><span class="t"><label><input type="checkbox"> <b>ASX 200 reshuffle announced</b> &larr; candidate #2</label><small>Buy the additions today, not later</small></span></div>
+    <div class="ev"><span class="d">~Tue 8 Sep</span><span class="t"><label><input type="checkbox"> <b>Austal</b> &mdash; Hanwha's four weeks are up</label><small>Firm offer, or the buyer walks. Moves hard either way</small></span></div>
+    <div class="ev"><span class="d">Mid Sep</span><span class="t"><label><input type="checkbox"> <b>Vertex Minerals</b> new mining rig arrives</label><small>Switchover continues through October</small></span></div>
+    <div class="ev"><span class="d">Fri 18 Sep</span><span class="t"><label><input type="checkbox"> <b>Reshuffle takes effect</b> &mdash; sell into this</label><small>Research says gains partly reverse after today</small></span></div>
+    <div class="ev"><span class="d">During Sep</span><span class="t"><label><input type="checkbox"> <b>Caravel Minerals</b> copper study due</label><small>Also watch for the Adani supply deal turning binding</small></span></div>
+    <div class="ev"><span class="d">Tue 30 Sep</span><span class="t"><label><input type="checkbox"> <b>Aura Energy</b> uranium build decision deadline</label><small>Check the funding, not just the decision</small></span></div>
+    <div class="ev"><span class="d">Thu 1 Oct</span><span class="t"><label><input type="checkbox"> <b>AGL</b> annual meeting</label><small>AGM season starts &mdash; companies update their forecasts</small></span></div>
+    <div class="ev"><span class="d">Wed 14 Oct</span><span class="t"><label><input type="checkbox"> <b>Commonwealth Bank</b> annual meeting</label></span></div>
+    <div class="ev"><span class="d">Thu 15 Oct</span><span class="t"><label><input type="checkbox"> <b>Origin Energy</b> annual meeting</label></span></div>
+    <div class="ev"><span class="d">Tue 20 Oct</span><span class="t"><label><input type="checkbox"> <b>South32</b> annual meeting</label></span></div>
+    <div class="ev"><span class="d">Thu 22 Oct</span><span class="t"><label><input type="checkbox"> <b>GAME CLOSES</b> &mdash; sell nothing after this</label><small>Anything scheduled after today cannot help you</small></span></div>
+  </div>
+</section>
+
+<footer>
+  <p><b>How to keep your work.</b> This page saves automatically in whichever browser you open it in. To give your work to your partner (or move to another computer), press <b>Save to a file</b> and send them <code>our-game-work.json</code>; they press <b>Load a file</b> and choose it. Keep the copy of this page somewhere you can find it &mdash; if you delete it, your saved work goes with it.</p>
+<p>Built for the ASX Schools Sharemarket Game, Game 2 2026 (13 August &ndash; 22 October). Odds are drawn from published base rates: Australian scheme-of-arrangement completion 79% (2025 public M&amp;A data), index-addition studies, and the winning-portfolio analysis in the project's research report. Candidate dates come from company announcements and ASX calendars and should be checked against each company's own ASX announcements page &mdash; several are estimates.</p>
+  <p>This is a practice competition using virtual money. It is general information for a school project, not financial advice, and takes no account of anyone's circumstances. Past results of a simulation are not a guide to real investment outcomes.</p>
+</footer>
+</div>
+
+<style>
+/* tab visibility driven by a per-viewer attribute, so one partner
+   switching tabs never moves the other partner's screen */
+body[data-local-tab="picks"] #p-picks,
+body[data-local-tab="port"]  #p-port,
+body[data-local-tab="sim"]   #p-sim,
+body[data-local-tab="diary"] #p-diary,
+body[data-local-tab="cal"]   #p-cal { display:block }
+@media print{
+  .tabs,.strip,button{display:none!important}
+  .panel{display:block!important;page-break-inside:auto;margin-top:26px}
+  body{background:#fff;color:#000;font-size:11pt}
+}
+</style>
+
+<script>
+(function(){
+  "use strict";
+  var $  = function(s,r){return (r||document).querySelector(s)};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var GAME_END = new Date(2026,9,22);   // 22 Oct 2026
+  var START = 50000, BAR = 44.6;
+
+  /* ---------- tabs: per-viewer only ---------- */
+  document.body.setAttribute("data-local-tab","picks");
+  $$(".tab").forEach(function(t){
+    t.addEventListener("click",function(){
+      $$(".tab").forEach(function(o){o.setAttribute("aria-selected", o===t?"true":"false")});
+      document.body.setAttribute("data-local-tab", t.dataset.p);
+    });
+  });
+  $$(".panel").forEach(function(p){p.removeAttribute("hidden")});
+
+  /* ---------- portfolio maths ---------- */
+  function holdings(){
+    return $$("#rows tr").map(function(tr){
+      var q = parseFloat(($(".pq",tr)||{}).value)||0;
+      var b = parseFloat(($(".pb",tr)||{}).value)||0;
+      var p = parseFloat(($(".pp",tr)||{}).value)||0;
+      return {code:(($(".pc",tr)||{}).value||"").toUpperCase().trim(),
+              sector:(($(".ps",tr)||{}).value||"").trim(),
+              qty:q, buy:b, now:p||b, value:q*(p||b), cost:q*b};
+    }).filter(function(h){return h.qty>0});
+  }
+  function money(n){return "$"+Math.round(n).toLocaleString("en-AU")}
+
+  function recalc(){
+    var h = holdings();
+    var cash = parseFloat(($("#cash")||{}).value)||0;
+    var val  = h.reduce(function(a,x){return a+x.value},0) + cash;
+    var total = val>0 ? val : START;
+    var ret = (total-START)/START*100;
+    $("#s-val").textContent = money(total);
+    var r = $("#s-ret");
+    r.textContent = (ret>=0?"+":"")+ret.toFixed(1)+"%";
+    r.style.color = ret>0.001 ? "var(--good)" : ret<-0.001 ? "var(--bad)" : "";
+    var days = Math.max(0, Math.ceil((GAME_END-new Date())/864e5));
+    $("#s-days").textContent = days;
+    health(h, cash, total, ret, days);
+  }
+
+  function health(h, cash, total, ret, days){
+    var box = $("#health"); if(!box) return;
+    if(!h.length){
+      box.innerHTML = '<p class="note">Enter at least one holding above and the health check will appear here.</p>';
+      return;
+    }
+    var invested = total-cash;
+    var bySec = {};
+    h.forEach(function(x){ var s=x.sector||"Not set"; bySec[s]=(bySec[s]||0)+x.value });
+    var secRows = Object.keys(bySec).sort(function(a,b){return bySec[b]-bySec[a]})
+      .map(function(s){
+        var pct = invested>0 ? bySec[s]/invested*100 : 0;
+        return '<div class="bar"><span>'+esc(s)+'</span><span class="track">'+
+          '<span class="fill" style="width:'+pct.toFixed(0)+'%"></span></span>'+
+          '<span class="n">'+pct.toFixed(0)+'%</span></div>';
+      }).join("");
+    var biggest = h.slice().sort(function(a,b){return b.value-a.value})[0];
+    var bigPct = invested>0 ? biggest.value/invested*100 : 0;
+    var cashPct = total>0 ? cash/total*100 : 0;
+
+    var checks = [];
+    checks.push(chk(h.length>=4 && h.length<=6,
+      "Holding "+h.length+" stocks",
+      "Winners held 4 to 6. "+(h.length<4?"Fewer than 4 is a big bet on being right."
+        :"More than 6 and you drift towards the index.")));
+    checks.push(chk(bigPct<=45,
+      "Biggest position is "+bigPct.toFixed(0)+"% ("+esc(biggest.code||"&mdash;")+")",
+      bigPct>45 ? "Over 45% in one stock. That can win the game and it can end it."
+                : "Sensible for a concentrated portfolio."));
+    checks.push(chk(cashPct<=15,
+      "Cash is "+cashPct.toFixed(0)+"% of the portfolio",
+      cashPct>15 ? "Cash earns nothing here and "+Math.max(0,Math.ceil((GAME_END-new Date())/864e5))+" days is not long. Put it to work."
+                 : "Fine."));
+    var needed = days>0 ? (BAR-ret) : 0;
+    checks.push(chk(needed<=25,
+      "Need "+needed.toFixed(1)+"% more to reach the winning bar",
+      needed>25 ? "That is a lot in "+days+" days. Winners average +44.6% over a full 15 weeks."
+                : "Within reach of a normal winning score."));
+
+    box.innerHTML = '<h3 style="font-size:.9rem;margin:0 0 6px">Where your money sits</h3>'+
+      '<div class="bars">'+secRows+'</div>'+
+      '<p class="note" style="margin-bottom:14px">Winning portfolios averaged <b>41% technology</b> and '+
+      '<b>18% materials</b> (mining). Defensive sectors barely featured.</p>'+
+      '<h3 style="font-size:.9rem;margin:0 0 6px">Checks</h3>'+checks.join("");
+  }
+  function chk(ok, title, note){
+    return '<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:9px">'+
+      '<span style="flex:none;width:17px;height:17px;border-radius:50%;margin-top:3px;'+
+      'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;'+
+      'background:'+(ok?"var(--good-bg)":"var(--bad-bg)")+';color:'+(ok?"var(--good)":"var(--bad)")+'">'+
+      (ok?"&#10003;":"!")+'</span><span style="font-size:.89rem"><b>'+esc(title)+'</b><br>'+
+      '<span style="color:var(--t2)">'+esc(note)+'</span></span></div>';
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+  document.addEventListener("input", function(e){
+    if(!e.target || !e.target.closest) return;
+    if(e.target.closest("#rows") || e.target.id==="cash") recalc();
+  });
+
+  /* ---------- add rows (gesture -> shared) ---------- */
+  function adder(btnId, bodyId){
+    var b=$(btnId); if(!b) return;
+    b.addEventListener("click", function(){
+      var tb=$(bodyId), last=tb.rows[tb.rows.length-1];
+      var row=last.cloneNode(true);
+      $$("input",row).forEach(function(i){
+        if(i.type==="checkbox") i.checked=false; else i.value="";
+        i.removeAttribute("placeholder");
+      });
+      tb.appendChild(row);
+    });
+  }
+  adder("#addrow","#rows"); adder("#adddiary","#drows");
+  var pr=$("#print"); if(pr) pr.addEventListener("click", function(){window.print()});
+
+  /* ---------- Monte Carlo ---------- */
+  // p = chance the catalyst lands well; up/dn = typical move either way.
+  // tail:false = the upside is capped (a takeover pays the offer price, no more).
+  // tail:true  = the upside is open-ended (a drill result or study can run hard).
+  var CAT = {
+    takeover_agreed:    {p:.79, up:.18, dn:-.12, tail:false},
+    takeover_contested: {p:.70, up:.14, dn:-.18, tail:false},
+    index:              {p:.70, up:.09, dn:-.03, tail:false},
+    study:              {p:.45, up:.32, dn:-.22, tail:true},
+    smallminer:         {p:.35, up:.55, dn:-.30, tail:true},
+    earnings:           {p:.50, up:.11, dn:-.11, tail:false}
+  };
+  var MIX = {
+    safe:  ["takeover_agreed","takeover_agreed","takeover_contested","index","earnings"],
+    mixed: ["takeover_agreed","index","takeover_contested","study","smallminer","earnings"],
+    wild:  ["smallminer","smallminer","study","takeover_contested","smallminer","study"]
+  };
+  function spread(){ return .45 + Math.random()*1.35 }   // each event lands soft or hard
+  // capped upside stays near the offer; open-ended upside occasionally runs 2-5x
+  function upside(c){
+    var m = spread();
+    if(c.tail && Math.random() < .14) m *= 2 + Math.random()*3;
+    return c.up * m;
+  }
+
+  function runSim(){
+    var n   = Math.max(1, Math.min(12, parseInt($("#sim-n").value,10)||4));
+    var mix = MIX[$("#sim-mix").value] || MIX.mixed;
+    var RUNS = 10000, out = [];
+    for(var i=0;i<RUNS;i++){
+      var tot = 0;
+      for(var k=0;k<n;k++){
+        var c = CAT[mix[k % mix.length]];
+        var mv = Math.random() < c.p ? upside(c) : c.dn * spread();
+        tot += (START/n) * (1+mv);
+      }
+      out.push(tot);
+    }
+    out.sort(function(a,b){return a-b});
+    var med  = out[Math.floor(RUNS/2)];
+    var win  = out.filter(function(v){return (v-START)/START*100 >= BAR}).length/RUNS*100;
+    var lose = out.filter(function(v){return v < START}).length/RUNS*100;
+    var p10  = out[Math.floor(RUNS*0.10)], p90 = out[Math.floor(RUNS*0.90)];
+
+    var BINS=34, lo=out[0], hi=out[RUNS-1], w=(hi-lo)/BINS||1, bins=new Array(BINS).fill(0);
+    out.forEach(function(v){ bins[Math.min(BINS-1, Math.floor((v-lo)/w))]++ });
+    var mx = Math.max.apply(null,bins);
+    var bars = bins.map(function(b,i){
+      var mid = lo + (i+.5)*w;
+      var cls = (mid-START)/START*100 >= BAR ? "win" : mid < START ? "loss" : "";
+      return '<div class="'+cls+'" style="height:'+(b/mx*100).toFixed(1)+'%"></div>';
+    }).join("");
+
+    $("#simout").innerHTML =
+      '<div class="strip" style="margin:14px 0 4px">'+
+      '<div class="st"><span class="k">Most likely result</span><span class="v mono">'+money(med)+'</span></div>'+
+      '<div class="st"><span class="k">Chance of winning</span><span class="v mono" style="color:var(--good)">'+win.toFixed(0)+'%</span></div>'+
+      '<div class="st"><span class="k">Chance of losing money</span><span class="v mono" style="color:var(--bad)">'+lose.toFixed(0)+'%</span></div>'+
+      '<div class="st"><span class="k">Usual range</span><span class="v mono" style="font-size:1rem">'+money(p10)+'&ndash;'+money(p90)+'</span></div>'+
+      '</div>'+
+      '<div class="hist">'+bars+'</div>'+
+      '<div class="axis"><span>'+money(lo)+'</span><span>$50,000 start</span><span>'+money(hi)+'</span></div>'+
+      '<p class="note"><span style="color:var(--good)">Green</span> = beat the winning bar of +44.6%. '+
+      '<span style="color:var(--bad)">Red</span> = finished below $50,000. '+
+      'Each run assumes equal money in every stock and one catalyst each.</p>'+
+(win < 1 ? '<div class="callout warn" style="margin-top:14px"><b>Read this carefully &mdash; '+
+      'it is the most useful thing on the page.</b> This mix has almost no chance of reaching '+
+      '+44.6%. That is not a bug. Takeovers and index changes pay a <em>capped</em> amount &mdash; a '+
+      'takeover can never pay more than the offer price. Safe catalysts cannot win the game. '+
+      'To have a real chance you must own something whose upside is open-ended, and accept the '+
+      'much higher chance of losing money that comes with it. Try the wildest mix and compare.</div>'
+      : '<div class="callout" style="margin-top:14px"><b>What this is telling you.</b> '+
+      'The wilder the mix, the higher the chance of winning <em>and</em> the higher the chance of '+
+      'losing money. That is not a flaw in the model &mdash; it is the actual trade-off, and it is '+
+      'why roughly half the field finishes below $50,000 every game.</div>');
+  }
+  var rb=$("#run"); if(rb) rb.addEventListener("click", runSim);
+
+  recalc(); runSim();
+})();
+</script>
+<script>
+/* ---- offline save: keeps everything in this browser, and lets the
+   two partners swap their work as a file ---- */
+(function(){
+  "use strict";
+  var KEY = "asx-game-desk-v1";
+  var $  = function(s,r){return (r||document).querySelector(s)};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+  function rowsOf(tb){
+    return $$("tr",tb).map(function(tr){
+      return $$("input",tr).map(function(i){
+        return i.type==="checkbox" ? (i.checked?1:0) : i.value;
+      });
+    });
+  }
+  function fillRows(tb, data){
+    if(!data || !data.length) return;
+    while(tb.rows.length < data.length){
+      var c = tb.rows[tb.rows.length-1].cloneNode(true);
+      $$("input",c).forEach(function(i){ i.type==="checkbox" ? i.checked=false : i.value=""; });
+      tb.appendChild(c);
+    }
+    data.forEach(function(vals, r){
+      var ins = $$("input", tb.rows[r]);
+      vals.forEach(function(v,c){
+        if(!ins[c]) return;
+        if(ins[c].type==="checkbox") ins[c].checked = !!v; else ins[c].value = v;
+      });
+    });
+  }
+
+  function snapshot(){
+    return {
+      v:1, saved:new Date().toISOString(),
+      rows:  rowsOf($("#rows")),
+      drows: rowsOf($("#drows")),
+      cash:  ($("#cash")||{}).value || "",
+      picks: (function(){                 // keyed by ticker, so notes follow the
+        var o = {};                        // company even when the list is re-ranked
+        $$(".pick").forEach(function(p){
+          var k = p.getAttribute("data-key"); if(!k) return;
+          o[k] = { bought: !!$('input[type=checkbox]',p) && $('input[type=checkbox]',p).checked,
+                   note: ($('input[type=text]',p)||{}).value || "" };
+        });
+        return o;
+      })(),
+      cal: $$(".ev input[type=checkbox]").map(function(c){return c.checked?1:0})
+    };
+  }
+  function restore(d){
+    if(!d) return;
+    fillRows($("#rows"), d.rows); fillRows($("#drows"), d.drows);
+    if($("#cash")) $("#cash").value = d.cash||"";
+    var pk = d.picks || {};
+    if(Array.isArray(pk)){                  // old saves were positional
+      pk.forEach(function(p,i){
+        var c = $$(".pick")[i]; if(!c || !p) return;
+        var cb=$('input[type=checkbox]',c), tx=$('input[type=text]',c);
+        if(cb) cb.checked=!!p.bought; if(tx) tx.value=p.note||"";
+      });
+    } else {
+      $$(".pick").forEach(function(c){
+        var p = pk[c.getAttribute("data-key")]; if(!p) return;
+        var cb=$('input[type=checkbox]',c), tx=$('input[type=text]',c);
+        if(cb) cb.checked=!!p.bought; if(tx) tx.value=p.note||"";
+      });
+    }
+    var cals = $$(".ev input[type=checkbox]");
+    (d.cal||[]).forEach(function(v,i){ if(cals[i]) cals[i].checked = !!v; });
+  }
+
+  var t=null;
+  function save(){
+    clearTimeout(t);
+    t = setTimeout(function(){
+      try{
+        localStorage.setItem(KEY, JSON.stringify(snapshot()));
+        var s=$("#saved"); if(s){ s.textContent="Saved"; s.style.opacity="1";
+          setTimeout(function(){s.style.opacity=".45"},1200); }
+      }catch(e){}
+    },350);
+  }
+  document.addEventListener("input", save);
+  document.addEventListener("change", save);
+  document.addEventListener("click", function(e){
+    if(e.target.id==="addrow"||e.target.id==="adddiary") save();
+  });
+
+  function nudge(){                       // make the totals recompute
+    var el = $("#rows input") || $("#cash");
+    if(el) el.dispatchEvent(new Event("input",{bubbles:true}));
+  }
+  try{ restore(JSON.parse(localStorage.getItem(KEY))); }catch(e){}
+  nudge();
+
+  /* export / import so partners can swap work */
+  var ex=$("#export"); if(ex) ex.addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(snapshot(),null,1)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "our-game-work.json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  });
+  var im=$("#importfile"); if(im) im.addEventListener("change", function(){
+    var f = im.files[0]; if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try{
+        restore(JSON.parse(rd.result)); save(); nudge();
+        alert("Loaded. Everything from that file is now on this screen.");
+      }catch(e){ alert("That file could not be read. Make sure it is the our-game-work.json file."); }
+    };
+    rd.readAsText(f); im.value="";
+  });
+})();
+</script>
+</body>
+</html>
