@@ -141,65 +141,6 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 }
 </style>
 
-<style>
-#lock{position:fixed;inset:0;z-index:9999;background:var(--ground);display:flex;
-  align-items:center;justify-content:center;padding:24px}
-#lock .box{max-width:360px;width:100%;text-align:center}
-#lock h2{font-size:1.3rem;margin:0 0 6px}
-#lock p{color:var(--t2);font-size:.9rem;margin:0 0 16px}
-#pin{font-family:"IBM Plex Mono",monospace;font-size:1.5rem;letter-spacing:.35em;
-  text-align:center;width:170px;padding:11px}
-#lockerr{color:var(--bad);font-size:.95rem;font-weight:600;min-height:22px;margin-top:14px}
-#buildline{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--t3);margin-top:18px}
-body[data-local-locked] .wrap{display:none}
-</style>
-<div id="lock" hidden>
-  <div class="box">
-    <h2>Sharemarket Game Desk</h2>
-    <p>Type <b>2610</b> and press Open.</p>
-    <input type="text" id="pin" maxlength="8" autocomplete="off" aria-label="Team PIN">
-    <div><button class="b" type="button" id="unlockbtn" style="margin-top:16px">Open</button></div>
-    <div id="lockerr"></div>
-    <div id="buildline">build 20260824-1430</div>
-  </div>
-</div>
-<script>
-(function(){
-  var PIN = "2610";                 // <-- change this to set a new team PIN
-  var K   = "asx-game-desk-unlocked";
-  var lock = document.getElementById("lock");
-  var pin  = document.getElementById("pin");
-  var btn  = document.getElementById("unlockbtn");
-  var err  = document.getElementById("lockerr");
-
-  var already = false;
-  try{ already = localStorage.getItem(K) === PIN; }catch(e){}
-  if(already) return;
-
-  document.body.setAttribute("data-local-locked","1");
-  lock.hidden = false;
-
-  function open_(){
-    var typed = (pin.value || "").replace(/[^0-9]/g, "");
-    if(typed === PIN){
-      try{ localStorage.setItem(K, PIN); }catch(e){}
-      document.body.removeAttribute("data-local-locked");
-      lock.style.display = "none";
-      return;
-    }
-    err.textContent = typed
-      ? 'That reads as "' + typed + '". The PIN is 2610.'
-      : "The box is empty - click it, then type 2610.";
-    pin.value = "";
-    pin.focus();
-  }
-
-  btn.onclick = open_;
-  pin.onkeydown = function(e){ if(e.key === "Enter" || e.keyCode === 13){ e.preventDefault(); open_(); } };
-  setTimeout(function(){ pin.focus(); }, 60);
-})();
-</script>
-
 <div class="wrap">
 <header>
   <p class="eyebrow">ASX schools sharemarket game &middot; game 2, 2026</p>
@@ -481,7 +422,8 @@ body[data-local-locked] .wrap{display:none}
 </section>
 
 <footer>
-  <p><b>Last refreshed: 24 August 2026</b> &mdash; FleetPartners now has three live bids with real prices ($4.00, $4.00, $3.80) and a fourth bidder has withdrawn; EQT's board has still not let either bidder inspect the books; Austal's deadline corrected to about 7 September.</p>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">build <b>20260824-1436</b></p>
+<p><b>Last refreshed: 24 August 2026</b> &mdash; FleetPartners now has three live bids with real prices ($4.00, $4.00, $3.80) and a fourth bidder has withdrawn; EQT's board has still not let either bidder inspect the books; Austal's deadline corrected to about 7 September.</p>
 <p><b>How to keep your work.</b> This page saves automatically in whichever browser you open it in. To give your work to your partner (or move to another computer), press <b>Save to a file</b> and send them <code>our-game-work.json</code>; they press <b>Load a file</b> and choose it. Keep the copy of this page somewhere you can find it &mdash; if you delete it, your saved work goes with it.</p>
 <p>Built for the ASX Schools Sharemarket Game, Game 2 2026 (13 August &ndash; 22 October). Odds are drawn from published base rates: Australian scheme-of-arrangement completion 79% (2025 public M&amp;A data), index-addition studies, and the winning-portfolio analysis in the project's research report. Candidate dates come from company announcements and ASX calendars and should be checked against each company's own ASX announcements page &mdash; several are estimates.</p>
   <p>This is a practice competition using virtual money. It is general information for a school project, not financial advice, and takes no account of anyone's circumstances. Past results of a simulation are not a guide to real investment outcomes.</p>
