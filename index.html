@@ -144,60 +144,59 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 <style>
 #lock{position:fixed;inset:0;z-index:9999;background:var(--ground);display:flex;
   align-items:center;justify-content:center;padding:24px}
-#lock .box{max-width:340px;width:100%;text-align:center}
+#lock .box{max-width:360px;width:100%;text-align:center}
 #lock h2{font-size:1.3rem;margin:0 0 6px}
-#lock p{color:var(--t2);font-size:.9rem;margin:0 0 18px}
-#lock input{font-family:"IBM Plex Mono",monospace;font-size:1.4rem;letter-spacing:.4em;
-  text-align:center;width:150px;padding:10px}
-#lock .err{color:var(--bad);font-size:.95rem;font-weight:600;min-height:22px;margin-top:12px}
+#lock p{color:var(--t2);font-size:.9rem;margin:0 0 16px}
+#pin{font-family:"IBM Plex Mono",monospace;font-size:1.5rem;letter-spacing:.35em;
+  text-align:center;width:170px;padding:11px}
+#lockerr{color:var(--bad);font-size:.95rem;font-weight:600;min-height:22px;margin-top:14px}
+#buildline{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--t3);margin-top:18px}
 body[data-local-locked] .wrap{display:none}
 </style>
 <div id="lock" hidden>
   <div class="box">
     <h2>Sharemarket Game Desk</h2>
-    <p>Enter the team PIN to open. <b>The PIN is 2610</b></p>
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--t3);margin:-8px 0 16px">build <b id="buildid">20260824-1426</b></p>
-    <form id="lockform"><input type="text" inputmode="numeric" id="pin" maxlength="6"
-      autocomplete="off" aria-label="Team PIN"><br>
-      <button class="b" type="submit" style="margin-top:14px">Unlock</button></form>
-    <div class="err" id="lockerr"></div>
+    <p>Type <b>2610</b> and press Open.</p>
+    <input type="text" id="pin" maxlength="8" autocomplete="off" aria-label="Team PIN">
+    <div><button class="b" type="button" id="unlockbtn" style="margin-top:16px">Open</button></div>
+    <div id="lockerr"></div>
+    <div id="buildline">build 20260824-1430</div>
   </div>
 </div>
 <script>
 (function(){
-  var PIN = "2610";                    // <-- change this to set a new team PIN
-  var K = "asx-game-desk-unlocked";
+  var PIN = "2610";                 // <-- change this to set a new team PIN
+  var K   = "asx-game-desk-unlocked";
   var lock = document.getElementById("lock");
-  try{ if(sessionStorage.getItem(K)===PIN || localStorage.getItem(K)===PIN) return; }catch(e){}
+  var pin  = document.getElementById("pin");
+  var btn  = document.getElementById("unlockbtn");
+  var err  = document.getElementById("lockerr");
+
+  var already = false;
+  try{ already = localStorage.getItem(K) === PIN; }catch(e){}
+  if(already) return;
+
   document.body.setAttribute("data-local-locked","1");
   lock.hidden = false;
-  var f = document.getElementById("lockform");
-  var busy = false;
-  function tryUnlock(e){
-    if(e) e.preventDefault();
-    if(busy) return;                       // click + submit both fire; only act once
-    busy = true; setTimeout(function(){ busy = false; }, 120);
-    var el = document.getElementById("pin");
-    if(!el) return;
-    var v = (el.value || "").replace(/[^0-9]/g, "");   // ignore spaces, autofill junk
-    if(v === PIN){
+
+  function open_(){
+    var typed = (pin.value || "").replace(/[^0-9]/g, "");
+    if(typed === PIN){
       try{ localStorage.setItem(K, PIN); }catch(e){}
       document.body.removeAttribute("data-local-locked");
-      lock.remove();
-    } else {
-      var err = document.getElementById("lockerr");
-      err.textContent = v.length
-        ? "That PIN (" + v + ") is not right. The PIN is 4 digits."
-        : "Nothing was typed in the box - click it first, then type.";
-      el.value = ""; el.focus();
+      lock.style.display = "none";
+      return;
     }
+    err.textContent = typed
+      ? 'That reads as "' + typed + '". The PIN is 2610.'
+      : "The box is empty - click it, then type 2610.";
+    pin.value = "";
+    pin.focus();
   }
-  f.addEventListener("submit", tryUnlock);
-  f.querySelector("button").addEventListener("click", tryUnlock);
-  document.getElementById("pin").addEventListener("keydown", function(e){
-    if(e.key === "Enter" || e.keyCode === 13) tryUnlock(e);
-  });
-  setTimeout(function(){ var i=document.getElementById("pin"); if(i) i.focus(); }, 60);
+
+  btn.onclick = open_;
+  pin.onkeydown = function(e){ if(e.key === "Enter" || e.keyCode === 13){ e.preventDefault(); open_(); } };
+  setTimeout(function(){ pin.focus(); }, 60);
 })();
 </script>
 
