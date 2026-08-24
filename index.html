@@ -171,8 +171,8 @@ body[data-local-locked] .wrap{display:none}
   document.body.setAttribute("data-local-locked","1");
   lock.hidden = false;
   var f = document.getElementById("lockform");
-  f.addEventListener("submit", function(e){
-    e.preventDefault();
+  function tryUnlock(e){
+    if(e) e.preventDefault();
     var v = document.getElementById("pin").value.trim();
     if(v === PIN){
       try{ localStorage.setItem(K, PIN); }catch(e){}
@@ -182,6 +182,11 @@ body[data-local-locked] .wrap{display:none}
       document.getElementById("lockerr").textContent = "Wrong PIN - try again.";
       document.getElementById("pin").value = "";
     }
+  }
+  f.addEventListener("submit", tryUnlock);
+  f.querySelector("button").addEventListener("click", tryUnlock);
+  document.getElementById("pin").addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.keyCode === 13) tryUnlock(e);
   });
   setTimeout(function(){ var i=document.getElementById("pin"); if(i) i.focus(); }, 60);
 })();
