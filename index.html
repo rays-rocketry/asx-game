@@ -154,6 +154,17 @@ td input{width:100%}
 .hist div.win{background:var(--good)} .hist div.loss{background:var(--bad)}
 .axis{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;
   font-size:.66rem;color:var(--t3)}
+
+/* past events: collapsed by default, per viewer */
+.cal:not([data-local-past="show"]) .ev.past{display:none}
+.ev.past .d{opacity:.5}
+.ev.past .t > label{opacity:.65}
+.outcome{display:block;margin-top:6px;padding:8px 11px;background:var(--good-bg);
+  border-left:2px solid var(--good);border-radius:0 3px 3px 0;font-size:.86rem;color:var(--text)}
+.outcome.bad{background:var(--bad-bg);border-left-color:var(--bad)}
+.outcome b{font-family:"IBM Plex Mono",monospace;font-size:.58rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--t3);display:block;margin-bottom:3px}
+#pasttoggle{margin-bottom:10px}
 .cal{display:flex;flex-direction:column;gap:0}
 .ev{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:11px 0;
   border-top:1px solid var(--line2);align-items:start}
@@ -414,10 +425,11 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
 <section class="panel" id="p-cal" hidden>
   <h2>What happens, and when</h2>
   <p class="lead">Every dated event between now and the close of the game. Tick them off as they pass &mdash; both of you see the same list.</p>
-  <div class="cal">
-    <div class="ev"><span class="d" style="opacity:.45">Mon 24 Aug &#10003;</span><span class="t"><label><input type="checkbox"> <b>Fortescue</b> full-year results</label><small>Watch: spending plans and dividends</small></span></div>
-    <div class="ev"><span class="d" style="opacity:.45">Tue 25 Aug &#10003;</span><span class="t"><label><input type="checkbox"> <b>Coles</b> full-year results</label><small>Sets the tone for Woolworths next day</small></span></div>
-    <div class="ev"><span class="d" style="opacity:.45">Wed 26 Aug &#10003;</span><span class="t"><label><input type="checkbox"> <b>Woolworths</b> + <b>Flight Centre</b> results</label><small>Flight Centre is 12% short-sold &mdash; the sharpest set-up of the week</small></span></div>
+  <p><button class="b ghost" id="pasttoggle" type="button">Show the 3 days that have passed</button></p>
+  <div class="cal" id="cal">
+    <div class="ev past"><span class="d">Mon 24 Aug &#10003;</span><span class="t"><label><input type="checkbox"> <b>Fortescue</b> full-year results</label><small>Watch: spending plans and dividends</small><span class="outcome bad"><b>What happened</b>Record shipments of 201.3 million tonnes and a US$3.5bn profit &mdash; but both the profit and the dividend came in <b>below what the market expected</b>, and the shares swung about. A textbook lesson: record production is not the same as beating expectations.</span></span></div>
+    <div class="ev past"><span class="d">Tue 25 Aug &#10003;</span><span class="t"><label><input type="checkbox"> <b>Coles</b> full-year results</label><small>Sets the tone for Woolworths next day</small><span class="outcome"><b>What happened</b>Profit jumped <b>14%</b> and the shares rose more than 2%. The supermarket result the market wanted.</span></span></div>
+    <div class="ev past"><span class="d">Wed 26 Aug &#10003;</span><span class="t"><label><input type="checkbox"> <b>Woolworths</b> + <b>Flight Centre</b> results</label><small>Flight Centre is 12% short-sold &mdash; the sharpest set-up of the week</small><span class="outcome"><b>What happened</b>Reported this morning. Compare the reaction with Coles yesterday &mdash; two very similar businesses reporting a day apart is the cleanest comparison you will get all season.</span></span></div>
     <div class="ev"><span class="d">Thu 27 Aug</span><span class="t"><label><input type="checkbox"> <b>EQT Holdings results + its answer on the two bids</b></label><small>The single biggest thing in your window this week &mdash; candidate 3</small></span></div>
     <div class="ev"><span class="d">Thu 27 Aug</span><span class="t"><label><input type="checkbox"> <b>Wesfarmers</b> + <b>Qantas</b> results</label><small>Bunnings is most of Wesfarmers' profit</small></span></div>
     <div class="ev"><span class="d">Mon 31 Aug</span><span class="t"><label><input type="checkbox"> <b>Reporting deadline</b></label><small>Every remaining company must report by today. Bad news tends to arrive late</small></span></div>
@@ -455,8 +467,26 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
   
 </section>
 
+
+<script>
+(function(){
+  var b=document.getElementById("pasttoggle"), c=document.getElementById("cal");
+  if(!b||!c) return;
+  var n=c.querySelectorAll(".ev.past").length;
+  function label(){
+    var on = c.getAttribute("data-local-past")==="show";
+    b.textContent = (on?"Hide the ":"Show the ") + n + " days that have passed";
+  }
+  b.onclick=function(){
+    c.setAttribute("data-local-past", c.getAttribute("data-local-past")==="show"?"hide":"show");
+    label();
+  };
+  label();
+})();
+</script>
+
 <footer>
-  <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">build <b>20260826-1349</b></p>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">build <b>20260826-1418</b></p>
 <p><b>Last refreshed: 26 August 2026</b> &mdash; EQT delayed its results to Thursday 27 August and will answer on both takeover bids then; Austal admitted overstating US profit by $17m and cut its guidance, so its odds are marked down; Perpetual lodged a substantial holder notice on FleetPartners.</p>
 <p><b>How to keep your work.</b> This page saves automatically in whichever browser you open it in. To give your work to your partner (or move to another computer), press <b>Save to a file</b> and send them <code>our-game-work.json</code>; they press <b>Load a file</b> and choose it. Keep the copy of this page somewhere you can find it &mdash; if you delete it, your saved work goes with it.</p>
 <p>Built for the ASX Schools Sharemarket Game, Game 2 2026 (13 August &ndash; 22 October). Odds are drawn from published base rates: Australian scheme-of-arrangement completion 79% (2025 public M&amp;A data), index-addition studies, and the winning-portfolio analysis in the project's research report. Candidate dates come from company announcements and ASX calendars and should be checked against each company's own ASX announcements page &mdash; several are estimates.</p>
